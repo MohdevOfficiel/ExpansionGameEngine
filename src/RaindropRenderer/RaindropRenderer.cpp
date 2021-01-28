@@ -10,7 +10,14 @@
 #include "RD_PostProcess.h"
 
 #include "RD_RenderingAPI.h"
-#include "RD_RenderingAPI_GL.h"
+
+#ifdef BUILD_OPENGL
+	#include "RD_RenderingAPI_GL.h"
+#endif //BUILD_OPENGL
+
+#ifdef BUILD_VULKAN
+	#include "RD_RenderingAPI_Vk.h"
+#endif //BUILD_VULKAN
 
 RaindropRenderer::RaindropRenderer(int w, int h, std::string windowName, API api, Pipeline pline, int maxFramerate, bool minInit, std::string engineDir) : m_vp_size(w, h), m_vp_pos(0.0f, 0.0f) {
 	FillFeaturesArray();
@@ -19,10 +26,20 @@ RaindropRenderer::RaindropRenderer(int w, int h, std::string windowName, API api
 	
 	m_engineDir = std::move(engineDir);
 
+#ifdef BUILD_OPENGL
 	if (api == API::OPENGL) {
+		std::cout << "Rendering using OpenGL." << std::endl;
 		m_api = std::make_unique<RD_RenderingAPI_GL>(this);
 	}
+#endif //BUILD_OPENGL
 
+#ifdef BUILD_VULKAN
+	if(api == API::VULKAN) {
+		std::cout << "Rendering using Vulkan." << std::endl;
+		m_api = std::make_unique<RD_RenderingAPI_Vk>(this);
+	}
+#endif //BUILD_VULKAN
+	
 	m_error_flag = false;
 	m_resize_override = false;
 

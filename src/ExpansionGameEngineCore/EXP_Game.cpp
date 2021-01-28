@@ -99,6 +99,14 @@ EXP_GameInfo EXP_Game::CreateGameInfoFromJSON(const std::string& file) {
 
 	std::string startupMap = TargetRoot["StartupMap"].asString();
 
+	std::string api = TargetRoot.get("API", "ogl").asString();
+	API rAPI;
+	if(api == "ogl") {
+		rAPI = API::OPENGL;
+	} else if(api == "vk") {
+		rAPI = API::VULKAN;
+	}
+
 	EXP_GameInfo gi = {};
 	gi.GameName = gameName;
 	gi.RootEngineContentFolder = engineFolder;
@@ -107,6 +115,7 @@ EXP_GameInfo EXP_Game::CreateGameInfoFromJSON(const std::string& file) {
 	gi.GameLib = GameLib;
 	gi.StartupMap = startupMap;
 	gi.RenderingPipeline = pline;
+	gi.RenderingAPI = rAPI;
 
 	return gi;
 }
@@ -119,7 +128,8 @@ void EXP_Game::InitGame(const vec3f& refreshColor, const EXP_GameInfo& gameinfo)
 
 	m_rndr = std::make_shared<RaindropRenderer>(m_res.x, m_res.y,
 												gameinfo.GameName,
-												API::OPENGL, gameinfo.RenderingPipeline,
+												gameinfo.RenderingAPI,
+												gameinfo.RenderingPipeline,
 												60,
 												false,
 												gameinfo.RootEngineContentFolder);

@@ -19,7 +19,7 @@ MainLevel::~MainLevel() {
 void MainLevel::OnStart() {
 	std::cout << "Game started" << std::endl;
 
-	m_mloader->GetStaticMeshByName("skydome")->SetShadowCasting(false);
+	//m_mloader->GetStaticMeshByName("skydome")->SetShadowCasting(false);
 }
 
 void MainLevel::OnTick() {

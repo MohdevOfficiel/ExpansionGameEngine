@@ -13,6 +13,7 @@ RD_WindowingSystemGLFW::RD_WindowingSystemGLFW(RaindropRenderer* rndr) : RD_Wind
 
 RD_WindowingSystemGLFW::~RD_WindowingSystemGLFW() {
 	glfwDestroyWindow(m_win);
+	glfwTerminate();
 }
 
 bool RD_WindowingSystemGLFW::OpenWindow(std::string name, int w, int h) {
@@ -79,7 +80,7 @@ int RD_WindowingSystemGLFW::GetWidth() {
 	return m_w;
 }
 
-GLFWwindow* RD_WindowingSystemGLFW::GetWindow() {
+GLFWwindow* RD_WindowingSystemGLFW::GetWindow() const {
 	return m_win;
 }
 
@@ -151,7 +152,7 @@ RD_RenderingAPI_GL::RD_RenderingAPI_GL(RaindropRenderer* rndr) : RD_RenderingAPI
 }
 
 RD_RenderingAPI_GL::~RD_RenderingAPI_GL() {
-
+	delete m_win_sys;
 }
 
 bool RD_RenderingAPI_GL::InitializeAPI(int w, int h, std::string wname) {

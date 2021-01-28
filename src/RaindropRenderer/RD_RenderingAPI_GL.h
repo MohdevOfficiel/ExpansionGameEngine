@@ -50,7 +50,7 @@ public:
 	virtual void CaptureCursor(bool mode);
 	virtual void SetVSync(const bool vsync);
 
-	GLFWwindow* GetWindow();
+	GLFWwindow* GetWindow() const;
 
 private:
 	GLFWwindow* m_win;
