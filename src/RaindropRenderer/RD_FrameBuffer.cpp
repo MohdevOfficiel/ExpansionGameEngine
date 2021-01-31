@@ -155,3 +155,59 @@ void RD_FrameBuffer_GL::DebugMode() {
 }
 
 #endif //BUILD_OPENGL
+
+#ifdef BUILD_VULKAN
+
+RD_FrameBuffer_Vk::RD_FrameBuffer_Vk(int w, int h, bool nodepth) {
+	m_w = w;
+	m_h = h;
+	m_nodepth = nodepth;
+	m_nbrAttachement = 0;
+	m_storage = NULL;
+}
+
+RD_FrameBuffer_Vk::~RD_FrameBuffer_Vk() {
+
+}
+
+void RD_FrameBuffer_Vk::BindFBO() {
+
+}
+
+void RD_FrameBuffer_Vk::UnbindFBO() {
+
+}
+
+void RD_FrameBuffer_Vk::BuildFBO() {
+
+}
+
+void RD_FrameBuffer_Vk::ConfigureRenderbuffer(int storage, int attachement) {
+
+}
+
+void RD_FrameBuffer_Vk::AddAttachement(unsigned int format, unsigned int scaleMode, unsigned int wrapmode) {
+
+}
+
+int RD_FrameBuffer_Vk::GetNumberOfAttachements() {
+	return m_nbrAttachement;
+}
+
+RD_Texture* RD_FrameBuffer_Vk::GetAttachementByIndex(int index) {
+	return nullptr;
+}
+
+void RD_FrameBuffer_Vk::ChangeFramebufferSize(int nw, int nh) {
+
+}
+
+void RD_FrameBuffer_Vk::DebugMode() {
+
+}
+
+void RD_FrameBuffer_Vk::CreateFBO() {
+
+}
+
+#endif // BUILD_VULKAN

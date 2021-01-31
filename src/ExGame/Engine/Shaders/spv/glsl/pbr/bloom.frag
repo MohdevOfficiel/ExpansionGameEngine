@@ -1,16 +1,15 @@
-#version 410 core
+#version 450 core
 layout (location = 0) out vec3 bloom;
 
-in vec2 UVcoords;
+layout (location = 3) in vec2 UVcoords;
 
-uniform sampler2D gShaded;
-uniform bool horizontal;
-uniform int threshold = 0;
+layout (binding = 0) uniform sampler2D gShaded;
+layout (binding = 1 ) uniform Data {
+    bool horizontal;
+    int threshold;
+};
 
-int kernelSize = 25;
-float ksize = 25;
-
-uniform float weight[5] = float[] (0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
+float weight[5] = float[] (0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
 
 void main() {
     vec3 result = texture(gShaded, UVcoords).rgb * weight[0];

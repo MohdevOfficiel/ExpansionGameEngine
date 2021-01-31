@@ -1,9 +1,9 @@
-#version 410 core
+#version 450 core
 layout (location = 1) out float ssao_blur;
 
-in vec2 UVcoords;
+layout (location = 3) in vec2 UVcoords;
 
-uniform sampler2D ssao_tex;
+layout (binding = 0) uniform sampler2D ssao_tex;
 
 void main() {
     vec2 texelSize = 1.0 / vec2(textureSize(ssao_tex, 0));

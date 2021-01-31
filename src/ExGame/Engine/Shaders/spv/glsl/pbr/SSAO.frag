@@ -1,18 +1,22 @@
-#version 410 core
+#version 450 core
 layout (location = 0) out float ssao;
 
-in vec2 UVcoords;
+layout (location = 3) in vec2 UVcoords;
 
-uniform sampler2D gPos;
-uniform sampler2D gNorm;
-uniform sampler2D noise;
+layout (binding = 0) uniform sampler2D gPos;
+layout (binding = 1) uniform sampler2D gNorm;
+layout (binding = 2) uniform sampler2D noise;
 
-uniform vec3 samples[64];
-uniform mat4 projection;
-uniform mat4 view;
+layout (binding = 3) uniform Samples { vec3 samples[64]; };
+layout (binding = 4) uniform CameraData {
+    mat4 projection;
+    mat4 view;
+};
 
-uniform int scr_w;
-uniform int scr_h;
+layout (binding = 5) uniform ScreenMetrics {
+    int scr_w;
+    int scr_h;
+};
 
 float radius = 0.5;
 float bias = 0.05;

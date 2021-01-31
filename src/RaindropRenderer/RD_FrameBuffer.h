@@ -104,4 +104,46 @@ private:
 
 #endif //BUILD_OPENGL
 
+#ifdef BUILD_VULKAN
+
+class RAINDROP_RENDERER_API RD_FrameBuffer_Vk : public RD_FrameBuffer
+{
+public:
+	RD_FrameBuffer_Vk(int w, int h, bool nodepth = false);
+	virtual ~RD_FrameBuffer_Vk();
+
+	virtual unsigned int GetFBO() {
+		return 0;
+	};
+
+	virtual void BindFBO();
+	virtual void UnbindFBO();
+
+	virtual int GetNumberOfAttachements();
+	virtual RD_Texture* GetAttachementByIndex(int index);
+
+	virtual void AddAttachement(unsigned int format, unsigned int scaleMode = SCALEMODE_LINEAR, unsigned int wrapmode = WRAPMODE_REPEAT);
+	virtual void BuildFBO();
+
+	virtual void ConfigureRenderbuffer(int storage, int attachement);
+
+	virtual void ChangeFramebufferSize(int nw, int nh);
+
+	virtual void DebugMode();
+
+private:
+	virtual void CreateFBO();
+
+	std::vector<Attachement> m_attachments;
+
+	unsigned int m_nbrAttachement;
+
+	int m_w, m_h;
+	int m_storage;
+	bool m_nodepth;
+};
+
+#endif // BUILD_VULKAN
+
+
 #endif //_RD_FRAME_BUFFER_H__

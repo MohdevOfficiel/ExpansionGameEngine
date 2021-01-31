@@ -40,8 +40,8 @@ public:
 	RD_ShaderLoader() {}
 	virtual ~RD_ShaderLoader() {};
 
-	virtual void compileShaderFromFile(std::string vertexShaderFile, std::string fragmentShaderFile) = 0;
-	virtual void CompileShaderFromCode(std::string vertexCode, std::string fragmentCode) = 0;
+	virtual void compileShaderFromFile(const std::string& vertexShaderFile, const std::string& fragmentShaderFile) = 0;
+	virtual void CompileShaderFromCode(const std::string& vertexCode, const std::string& fragmentCode) = 0;
 
 	virtual void useShader() = 0;
 
@@ -53,7 +53,7 @@ public:
 
 	virtual void SetVec3(const std::string& name, vec3f vec) = 0;
 
-	virtual unsigned int GetProgID() = 0;
+	virtual unsigned int GetProgID() { return 0; };
 };
 
 #ifdef BUILD_OPENGL
@@ -64,25 +64,60 @@ public:
 	RD_ShaderLoader_GL();
 	~RD_ShaderLoader_GL();
 
-	void compileShaderFromFile(std::string vertexShaderFile, std::string fragmentShaderFile);
-	void CompileShaderFromCode(std::string vertexCode, std::string fragmentCode);
+	virtual void compileShaderFromFile(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
+	virtual void CompileShaderFromCode(const std::string& vertexCode, const std::string& fragmentCode);
 
-	void useShader();
+	virtual void useShader();
 
-	void SetBool(const std::string &name, bool value);
-	void SetInt(const std::string& name, int value);
-	void SetFloat(const std::string& name, float value);
+	virtual void SetBool(const std::string &name, bool value);
+	virtual void SetInt(const std::string& name, int value);
+	virtual void SetFloat(const std::string& name, float value);
 
-	void SetMatrix(const std::string& name, mat4f matrix);
+	virtual void SetMatrix(const std::string& name, mat4f matrix);
 
-	void SetVec3(const std::string& name, vec3f vec);
+	virtual void SetVec3(const std::string& name, vec3f vec);
 
-	unsigned int GetProgID();
+	virtual unsigned int GetProgID();
 
 private:
 	unsigned int m_program_id;
 };
 
 #endif //BUILD_OPENGL
+
+#ifdef BUILD_VULKAN
+
+class RD_RenderingAPI_Vk;
+#include <vulkan/vulkan.hpp>
+
+class RAINDROPRENDERER_API RD_ShaderLoader_Vk : public RD_ShaderLoader
+{
+public:
+	RD_ShaderLoader_Vk(RD_RenderingAPI_Vk* api);
+	~RD_ShaderLoader_Vk();
+
+	virtual void compileShaderFromFile(const std::string& vertexShaderFile, const std::string& fragmentShaderFile);
+	virtual void CompileShaderFromCode(const std::string& vertexCode, const std::string& fragmentCode);
+
+	virtual void useShader();
+
+	virtual void SetBool(const std::string& name, const bool value);
+	virtual void SetInt(const std::string& name, const int value);
+	virtual void SetFloat(const std::string& name, const float value);
+
+	virtual void SetMatrix(const std::string& name, const mat4f matrix);
+
+	virtual void SetVec3(const std::string& name, const vec3f vec);
+
+	virtual unsigned int GetProgID() { return 0; };
+
+private:
+	RD_RenderingAPI_Vk* m_api;
+
+	VkShaderModule m_shader_vert;
+	VkShaderModule m_shader_frag;
+};
+
+#endif //BUILD_VULKAN
 
 #endif //_RD_SHADER_LOADER_H__

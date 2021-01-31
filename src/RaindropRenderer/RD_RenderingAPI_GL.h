@@ -24,6 +24,8 @@
 #include <iostream>
 #include <string>
 
+#define GL_SHADER_FOLDER "glsl"
+
 class RD_API RD_WindowingSystemGLFW : public RD_WindowingSystem {
 public:
 	RD_WindowingSystemGLFW(RaindropRenderer* rndr);

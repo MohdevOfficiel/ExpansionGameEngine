@@ -12,7 +12,7 @@ RD_ShaderLoader_GL::~RD_ShaderLoader_GL() {
 	glDeleteProgram(m_program_id);
 }
 
-void RD_ShaderLoader_GL::compileShaderFromFile(std::string vertexShaderFile, std::string fragmentShaderFile) {
+void RD_ShaderLoader_GL::compileShaderFromFile(const std::string& vertexShaderFile, const std::string& fragmentShaderFile) {
 	if (!std::filesystem::exists(vertexShaderFile)) {
 		dispErrorMessageBox(StrToWStr("Cannot open " + vertexShaderFile + " path does not exists."));
 		return;
@@ -91,7 +91,7 @@ void RD_ShaderLoader_GL::compileShaderFromFile(std::string vertexShaderFile, std
 	glDeleteShader(fragmentShader);
 }
 
-void RD_ShaderLoader_GL::CompileShaderFromCode(std::string vertexCode, std::string fragmentCode) {
+void RD_ShaderLoader_GL::CompileShaderFromCode(const std::string& vertexCode, const std::string& fragmentCode) {
 	//Common variables
 	const char* c_vertexShaderData;
 	const char* c_fragmentShaderData;
@@ -195,3 +195,106 @@ unsigned int RD_ShaderLoader_GL::GetProgID() {
 }
 
 #endif //BUILD_OPENGL
+
+#ifdef BUILD_VULKAN
+
+#include "RD_RenderingAPI_Vk.h"
+
+RD_ShaderLoader_Vk::RD_ShaderLoader_Vk(RD_RenderingAPI_Vk* api) {
+	m_api = api;
+}
+
+RD_ShaderLoader_Vk::~RD_ShaderLoader_Vk() {
+	m_api->DestroyShaderModule(m_shader_frag);
+	m_api->DestroyShaderModule(m_shader_vert);
+}
+
+void RD_ShaderLoader_Vk::compileShaderFromFile(const std::string& vert, const std::string& frag) {
+	if (!std::filesystem::exists(vert)) {
+		dispErrorMessageBox(StrToWStr("Cannot open " + vert + " path does not exists."));
+		return;
+	}
+
+	if (!std::filesystem::exists(frag)) {
+		dispErrorMessageBox(StrToWStr("Cannot open " + frag + " path does not exists."));
+		return;
+	}
+
+	std::ifstream vFile;
+	vFile.open(vert, std::ios::ate | std::ios::binary);
+	if (!vFile.is_open()) {
+		std::cerr << "ERROR: Cannot open file " << vert << std::endl;
+		dispErrorMessageBox(StrToWStr("Cannot open file" + vert));
+		return;
+	}
+
+	size_t vfSize = vFile.tellg();
+	std::vector<char> vertContent(vfSize);
+
+	vFile.seekg(0);
+	vFile.read(vertContent.data(), vfSize);
+	vFile.close();
+
+	std::ifstream fFile;
+	fFile.open(frag, std::ios::ate | std::ios::binary);
+	if (!fFile.is_open()) {
+		std::cerr << "ERROR: Cannot open file " << frag << std::endl;
+		dispErrorMessageBox(StrToWStr("Cannot open file" + frag));
+		return;
+	}
+
+	size_t ffSize = fFile.tellg();
+	std::vector<char> fragContent(ffSize);
+
+	fFile.seekg(0);
+	fFile.read(fragContent.data(), ffSize);
+	fFile.close();
+
+	m_shader_vert = m_api->CreateShaderModule(vertContent);
+	m_shader_frag = m_api->CreateShaderModule(fragContent);
+
+	VkPipelineShaderStageCreateInfo vertStage_cInfo{};
+	vertStage_cInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	vertStage_cInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+	vertStage_cInfo.module = m_shader_frag;
+	vertStage_cInfo.pName = "main";
+
+	VkPipelineShaderStageCreateInfo fragStage_cInfo{};
+	fragStage_cInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	fragStage_cInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+	fragStage_cInfo.module = m_shader_vert;
+	fragStage_cInfo.pName = "main";
+
+	m_pl_st_cInfo[0] = vertStage_cInfo;
+	m_pl_st_cInfo[1] = fragStage_cInfo;
+}
+
+void RD_ShaderLoader_Vk::CompileShaderFromCode(const std::string& vert, const std::string& frag) {
+
+}
+
+void RD_ShaderLoader_Vk::useShader() {
+
+}
+
+void RD_ShaderLoader_Vk::SetBool(const std::string& name, const bool value) {
+
+}
+
+void RD_ShaderLoader_Vk::SetInt(const std::string& name, const int value) {
+
+}
+
+void RD_ShaderLoader_Vk::SetFloat(const std::string& name, const float value) {
+
+}
+
+void RD_ShaderLoader_Vk::SetMatrix(const std::string& name, const mat4f matrix) {
+
+}
+
+void RD_ShaderLoader_Vk::SetVec3(const std::string& name, const vec3f vec) {
+
+}
+
+#endif //BUILD_VULKAN

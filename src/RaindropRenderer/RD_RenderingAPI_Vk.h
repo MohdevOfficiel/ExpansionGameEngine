@@ -20,6 +20,8 @@ constexpr bool enblValLayers = true;
 constexpr bool enblValLayers = false;
 #endif //DEBUG
 
+#define VK_SHADER_FOLDER "spv"
+
 #undef max
 #undef min
 
@@ -108,11 +110,17 @@ public:
 
 	void CreateWindowSurface(VkInstance inst);
 	VkSurfaceKHR GetWindowSurface();
+
+	void CreateViewportAndScissors(VkExtent2D extent);
+	VkViewport GetViewport() { return m_viewport; }
+	VkRect2D GetScissors() { return m_scissors; }
 private:
 	RaindropRenderer* m_rndr;
 	GLFWwindow* m_win;
 	
 	VkSurfaceKHR m_surface;
+	VkViewport m_viewport;
+	VkRect2D m_scissors;
 };
 
 class RD_API RD_RenderingAPI_Vk : public RD_RenderingAPI {
@@ -140,6 +148,10 @@ public:
 	virtual void SetFilledMode(FillingMode fmode);
 
 	virtual int GetMaxTextureCount();
+
+	VkShaderModule CreateShaderModule(const std::vector<char>& code_char);
+	void DestroyShaderModule(VkShaderModule shader);
+
 private:
 	static VKAPI_ATTR VkBool32 VKAPI_CALL dbgCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT msgSeverity,
@@ -246,6 +258,7 @@ private:
 	void CreateSwapChain();
 	void CreateImageViews();
 	void CreateGraphicPipeline();
+	void CreateMainRenderPass();
 
 	std::vector<const char*> GetRequiredExtensions();
 
@@ -257,6 +270,7 @@ private:
 
 	VkInstance m_inst;
 	VkSwapchainKHR m_swapchain;
+	VkRenderPass m_mainsRenderPass;
 
 	VkDebugUtilsMessengerEXT m_dbg_msg;
 

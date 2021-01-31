@@ -87,6 +87,9 @@ VkSurfaceKHR RD_WindowingSystem_GLFW_Vk::GetWindowSurface() {
 }
 
 bool RD_WindowingSystem_GLFW_Vk::OpenWindow(std::string name, int w, int h) {
+	m_w = w;
+	m_h = h;
+
 	if(!glfwInit()) {
 		const char* error;
 		glfwGetError(&error);
@@ -200,6 +203,20 @@ void RD_WindowingSystem_GLFW_Vk::CreateWindowSurface(VkInstance inst) {
 	}
 }
 
+void RD_WindowingSystem_GLFW_Vk::CreateViewportAndScissors(VkExtent2D extent) {
+	m_viewport = VkViewport{};
+	m_viewport.width = extent.width;
+	m_viewport.height = extent.height;
+	m_viewport.x = 0;
+	m_viewport.y = 0;
+	m_viewport.maxDepth = 1.0f;
+	m_viewport.minDepth = 0.0f;
+
+	m_scissors = VkRect2D{};
+	m_scissors.extent = extent;
+	m_scissors.offset = { 0, 0 };
+}
+
 //RD_RenderingAPI_Vk
 
 RD_RenderingAPI_Vk::RD_RenderingAPI_Vk(RaindropRenderer* rndr) : RD_RenderingAPI() {
@@ -215,6 +232,8 @@ RD_RenderingAPI_Vk::~RD_RenderingAPI_Vk() {
 	for (auto imgv : m_sc_img_view) {
 		vkDestroyImageView(m_device, imgv, nullptr);
 	}
+
+	vkDestroyRenderPass(m_device, m_mainsRenderPass, nullptr);
 
 	vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
 	vkDestroySurfaceKHR(m_inst, m_winsys->GetWindowSurface(), nullptr);
@@ -239,13 +258,76 @@ bool RD_RenderingAPI_Vk::InitializeAPI(const int w, const int h, const std::stri
 	FetchPhysicalDevice();
 	CreateLogicalDevice();
 	CreateSwapChain();
+	CreateMainRenderPass();
 	CreateGraphicPipeline();
 
 	return true;
 }
 
 void RD_RenderingAPI_Vk::CreateGraphicPipeline() {
+	m_winsys->CreateViewportAndScissors(m_sc_extent);
 
+	VkViewport vp = m_winsys->GetViewport();
+	VkRect2D scissors = m_winsys->GetScissors();
+
+	VkPipelineViewportStateCreateInfo vpState{};
+	vpState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	vpState.viewportCount = 1;
+	vpState.pViewports = &vp;
+	vpState.scissorCount = 1;
+	vpState.pScissors = &scissors;
+
+	VkPipelineRasterizationStateCreateInfo rasterizer{};
+	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+	rasterizer.depthClampEnable = VK_FALSE;
+	rasterizer.rasterizerDiscardEnable = VK_FALSE;
+	rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+	rasterizer.depthBiasEnable = VK_FALSE;
+
+	VkPipelineMultisampleStateCreateInfo msaa{};
+	msaa.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+	msaa.sampleShadingEnable = VK_FALSE;
+	msaa.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+	VkPipelineColorBlendAttachmentState blending{};
+	blending.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	blending.blendEnable = VK_FALSE;
+}
+
+void RD_RenderingAPI_Vk::CreateMainRenderPass() {
+	VkAttachmentDescription colorAtt{};
+	colorAtt.format = m_format;
+	colorAtt.samples = VK_SAMPLE_COUNT_1_BIT;
+	colorAtt.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAtt.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	colorAtt.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAtt.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	colorAtt.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	colorAtt.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+	VkAttachmentReference colorAttRef{};
+	colorAttRef.attachment = 0;
+	colorAttRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkSubpassDescription subpass{};
+	subpass.colorAttachmentCount = 1;
+	subpass.pColorAttachments = &colorAttRef;
+
+	VkRenderPassCreateInfo rndrPassInfo{};
+	rndrPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	rndrPassInfo.attachmentCount = 1;
+	rndrPassInfo.pAttachments = &colorAtt;
+	rndrPassInfo.subpassCount = 1;
+	rndrPassInfo.pSubpasses = &subpass;
+
+	if (vkCreateRenderPass(m_device, &rndrPassInfo, nullptr, &m_mainsRenderPass) != VK_SUCCESS) {
+		std::cerr << "ERROR: Cannot create main render pass." << std::endl;
+		dispErrorMessageBox(StrToWStr("Cannot create main render pass"));
+	}
+	else {
+		std::cout << "Created main render pass !" << std::endl;
+	}
 }
 
 bool RD_RenderingAPI_Vk::CreateInstance() {
@@ -596,11 +678,15 @@ RD_Texture* RD_RenderingAPI_Vk::CreateTexture() {
 }
 
 RD_ShaderLoader* RD_RenderingAPI_Vk::CreateShader() {
-	return nullptr;
+	return new RD_ShaderLoader_Vk(this);
+}
+
+void RD_RenderingAPI_Vk::DestroyShaderModule(VkShaderModule shader) {
+	vkDestroyShaderModule(m_device, shader, nullptr);
 }
 
 RD_FrameBuffer* RD_RenderingAPI_Vk::CreateFrameBuffer(int w, int h, bool nodepth) {
-	return nullptr;
+	return new RD_FrameBuffer_Vk(w, h, nodepth);
 }
 
 RD_Cubemap* RD_RenderingAPI_Vk::CreateCubemap() {
@@ -635,5 +721,21 @@ int RD_RenderingAPI_Vk::GetMaxTextureCount() {
 	return 0;
 }
 
+VkShaderModule RD_RenderingAPI_Vk::CreateShaderModule(const std::vector<char>& code_char) {
+	VkShaderModuleCreateInfo cInfo{};
+	cInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	cInfo.codeSize = code_char.size();
+	cInfo.pCode = reinterpret_cast<const uint32_t*>(code_char.data());
+	cInfo.pNext = NULL;
+	cInfo.flags = NULL;
+
+	VkShaderModule shader;
+	if (vkCreateShaderModule(m_device, &cInfo, nullptr, &shader) != VK_SUCCESS) {
+		std::cerr << "ERROR: Could not create shader module." << std::endl;
+		dispErrorMessageBox(StrToWStr("Could not create shader module."));
+	}
+
+	return shader;
+}
 
 #endif //BUILD_VULKAN
