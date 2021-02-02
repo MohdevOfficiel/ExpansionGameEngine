@@ -225,9 +225,14 @@ RD_RenderingAPI_Vk::RD_RenderingAPI_Vk(RaindropRenderer* rndr) : RD_RenderingAPI
 }
 
 RD_RenderingAPI_Vk::~RD_RenderingAPI_Vk() {
-	if (enblValLayers) {
-		DestroyDebugUtilsMessengerEXT(m_inst, m_dbg_msg, nullptr);
+	vkDestroyCommandPool(m_device, m_command_pool, nullptr);
+
+	for (auto fb : m_sc_fbo) {
+		vkDestroyFramebuffer(m_device, fb, nullptr);
 	}
+
+	vkDestroyPipeline(m_device, m_pipeline, nullptr);
+	vkDestroyPipelineLayout(m_device, m_layout, nullptr);
 
 	for (auto imgv : m_sc_img_view) {
 		vkDestroyImageView(m_device, imgv, nullptr);
@@ -239,6 +244,11 @@ RD_RenderingAPI_Vk::~RD_RenderingAPI_Vk() {
 	vkDestroySurfaceKHR(m_inst, m_winsys->GetWindowSurface(), nullptr);
 
 	vkDestroyDevice(m_device, nullptr);
+
+	if (enblValLayers) {
+		DestroyDebugUtilsMessengerEXT(m_inst, m_dbg_msg, nullptr);
+	}
+
 	vkDestroyInstance(m_inst, nullptr);
 
 	delete m_winsys;
@@ -259,12 +269,103 @@ bool RD_RenderingAPI_Vk::InitializeAPI(const int w, const int h, const std::stri
 	CreateLogicalDevice();
 	CreateSwapChain();
 	CreateMainRenderPass();
-	CreateGraphicPipeline();
+	CreatePipelineLayout();
 
 	return true;
 }
 
-void RD_RenderingAPI_Vk::CreateGraphicPipeline() {
+void RD_RenderingAPI_Vk::EndInit() {
+	CreateFramebuffers();
+	CreateCommandPool();
+}
+
+void RD_RenderingAPI_Vk::CreateCommandPool() {
+	QueueFamilyIndices qFam = FindQueueFamilies(m_pdevice);
+
+	VkCommandPoolCreateInfo cInfo{};
+	cInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	cInfo.queueFamilyIndex = qFam.graphicsFamily.value();
+	cInfo.flags = 0;
+
+	if (vkCreateCommandPool(m_device, &cInfo, nullptr, &m_command_pool) != VK_SUCCESS) {
+		std::cerr << "ERROR: Cannot create command pool." << std::endl;
+		dispErrorMessageBox(StrToWStr("Cannot create command pool."));
+	}
+}
+
+void RD_RenderingAPI_Vk::CreateCommandBuffers() {
+	m_command_buffers.resize(m_sc_fbo.size());
+
+	VkCommandBufferAllocateInfo allocInfo{};
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.commandPool = m_command_pool;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandBufferCount = (uint32_t)m_command_buffers.size();
+
+	if (vkAllocateCommandBuffers(m_device, &allocInfo, m_command_buffers.data()) != VK_SUCCESS) {
+		std::cerr << "ERROR: Cannot create command buffers." << std::endl;
+		dispErrorMessageBox(StrToWStr("Cannot create command buffers."));
+		return;
+	}
+	else {
+		std::cout << "Created command buffers !" << std::endl;
+	}
+
+	for (size_t i = 0; i < m_command_buffers.size(); i++) {
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = 0;
+		beginInfo.pInheritanceInfo = nullptr;
+
+		if (vkBeginCommandBuffer(m_command_buffers[i], &beginInfo) != VK_SUCCESS) {
+			std::cerr << "ERROR: Cannot to begin recording command buffer." << std::endl;
+			dispErrorMessageBox(StrToWStr("Cannot to begin recording command buffer."));
+		}
+	}
+}
+
+void RD_RenderingAPI_Vk::CreateFramebuffers() {
+	m_sc_fbo.resize(m_sc_img_view.size());
+
+	for (size_t i = 0; i < m_sc_img_view.size(); i++) {
+		VkImageView attachements[] = {
+			m_sc_img_view[i]
+		};
+
+		VkFramebufferCreateInfo cInfo{};
+		cInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		cInfo.renderPass = m_mainsRenderPass;
+		cInfo.attachmentCount = 1;
+		cInfo.pAttachments = attachements;
+		cInfo.width = m_sc_extent.width;
+		cInfo.height = m_sc_extent.height;
+		cInfo.layers = 1;
+
+		if (vkCreateFramebuffer(m_device, &cInfo, nullptr, &m_sc_fbo[i]) != VK_SUCCESS) {
+			std::cerr << "ERROR: Cannot create main framebuffer." << std::endl;
+			dispErrorMessageBox(StrToWStr("Cannot create main framebuffer."));
+			return;
+		}
+	}
+
+	std::cout << "Created framebuffers !" << std::endl;
+}
+
+void RD_RenderingAPI_Vk::CreatePipelineLayout() {
+	VkPipelineLayoutCreateInfo cInfo{};
+	cInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	cInfo.setLayoutCount = 0;
+	cInfo.pSetLayouts = nullptr;
+	cInfo.pushConstantRangeCount = 0;
+	cInfo.pPushConstantRanges = 0;
+
+	if (vkCreatePipelineLayout(m_device, &cInfo, nullptr, &m_layout) != VK_SUCCESS) {
+		std::cerr << "ERROR: Cannot create pipeline layout." << std::endl;
+		dispErrorMessageBox(StrToWStr("Cannot create pipeline layout."));
+	}
+}
+
+void RD_RenderingAPI_Vk::CreateGraphicPipeline(const std::vector<VkPipelineShaderStageCreateInfo>& shaderStages) {
 	m_winsys->CreateViewportAndScissors(m_sc_extent);
 
 	VkViewport vp = m_winsys->GetViewport();
@@ -284,6 +385,7 @@ void RD_RenderingAPI_Vk::CreateGraphicPipeline() {
 	rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
 	rasterizer.depthBiasEnable = VK_FALSE;
+	rasterizer.lineWidth = 1.0f;
 
 	VkPipelineMultisampleStateCreateInfo msaa{};
 	msaa.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
@@ -293,6 +395,50 @@ void RD_RenderingAPI_Vk::CreateGraphicPipeline() {
 	VkPipelineColorBlendAttachmentState blending{};
 	blending.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 	blending.blendEnable = VK_FALSE;
+
+	VkPipelineColorBlendStateCreateInfo blending_cInfo{};
+	blending_cInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+	blending_cInfo.logicOpEnable = VK_FALSE;
+	blending_cInfo.attachmentCount = 1;
+	blending_cInfo.pAttachments = &blending;
+
+	VkPipelineVertexInputStateCreateInfo vert_in{};
+	vert_in.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	vert_in.vertexBindingDescriptionCount = 0;
+	vert_in.pVertexBindingDescriptions = nullptr;
+	vert_in.vertexAttributeDescriptionCount = 0;
+	vert_in.pVertexAttributeDescriptions = nullptr;
+
+	VkPipelineInputAssemblyStateCreateInfo asm_in{};
+	asm_in.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+	asm_in.primitiveRestartEnable = VK_FALSE;
+	asm_in.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+	VkGraphicsPipelineCreateInfo cInfo{};
+	cInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	cInfo.stageCount = shaderStages.size();
+	cInfo.pStages = shaderStages.data();
+	cInfo.pVertexInputState = &vert_in;
+	cInfo.pInputAssemblyState = &asm_in;
+	cInfo.pViewportState = &vpState;
+	cInfo.pRasterizationState = &rasterizer;
+	cInfo.pMultisampleState = &msaa;
+	cInfo.pDepthStencilState = nullptr;
+	cInfo.pColorBlendState = &blending_cInfo;
+	cInfo.pDynamicState = nullptr;
+	cInfo.layout = m_layout;
+	cInfo.renderPass = m_mainsRenderPass;
+	cInfo.subpass = 0;
+	cInfo.basePipelineHandle = VK_NULL_HANDLE;
+	cInfo.basePipelineIndex = -1;
+
+	if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &cInfo, nullptr, &m_pipeline) != VK_SUCCESS) {
+		std::cerr << "ERROR: Cannot create graphic pipeline." << std::endl;
+		dispErrorMessageBox(StrToWStr("Cannot create graphic pipeline."));
+	}
+	else {
+		std::cout << "Created graphic pipeline !" << std::endl;
+	}
 }
 
 void RD_RenderingAPI_Vk::CreateMainRenderPass() {
@@ -674,7 +820,7 @@ RD_RenderingAPI_VertexBuffer* RD_RenderingAPI_Vk::CreateVertexBuffer() {
 }
 
 RD_Texture* RD_RenderingAPI_Vk::CreateTexture() {
-	return nullptr;
+	return new RD_Texture_Vk();
 }
 
 RD_ShaderLoader* RD_RenderingAPI_Vk::CreateShader() {

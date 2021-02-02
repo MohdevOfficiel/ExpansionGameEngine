@@ -202,6 +202,9 @@ unsigned int RD_ShaderLoader_GL::GetProgID() {
 
 RD_ShaderLoader_Vk::RD_ShaderLoader_Vk(RD_RenderingAPI_Vk* api) {
 	m_api = api;
+
+	m_pl_st_cInfo[0] = VkPipelineShaderStageCreateInfo{};
+	m_pl_st_cInfo[1] = VkPipelineShaderStageCreateInfo{};
 }
 
 RD_ShaderLoader_Vk::~RD_ShaderLoader_Vk() {
@@ -256,13 +259,13 @@ void RD_ShaderLoader_Vk::compileShaderFromFile(const std::string& vert, const st
 	VkPipelineShaderStageCreateInfo vertStage_cInfo{};
 	vertStage_cInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	vertStage_cInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-	vertStage_cInfo.module = m_shader_frag;
+	vertStage_cInfo.module = m_shader_vert;
 	vertStage_cInfo.pName = "main";
 
 	VkPipelineShaderStageCreateInfo fragStage_cInfo{};
 	fragStage_cInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	fragStage_cInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-	fragStage_cInfo.module = m_shader_vert;
+	fragStage_cInfo.module = m_shader_frag;
 	fragStage_cInfo.pName = "main";
 
 	m_pl_st_cInfo[0] = vertStage_cInfo;
@@ -270,7 +273,22 @@ void RD_ShaderLoader_Vk::compileShaderFromFile(const std::string& vert, const st
 }
 
 void RD_ShaderLoader_Vk::CompileShaderFromCode(const std::string& vert, const std::string& frag) {
+	/* . . . SHADER LOADING . . . */
 
+	VkPipelineShaderStageCreateInfo vertStage_cInfo{};
+	vertStage_cInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	vertStage_cInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+	vertStage_cInfo.module = m_shader_vert;
+	vertStage_cInfo.pName = "main";
+
+	VkPipelineShaderStageCreateInfo fragStage_cInfo{};
+	fragStage_cInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	fragStage_cInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+	fragStage_cInfo.module = m_shader_frag;
+	fragStage_cInfo.pName = "main";
+
+	m_pl_st_cInfo[0] = vertStage_cInfo;
+	m_pl_st_cInfo[1] = fragStage_cInfo;
 }
 
 void RD_ShaderLoader_Vk::useShader() {

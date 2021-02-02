@@ -79,6 +79,8 @@ public:
 	bool WantToClose() const;
 	RD_RenderingAPI* GetRenderingAPI() const;
 
+	void CreateGraphicsPipeline_Vk();
+
 	int getWindowHeigh() const;
 	int getWindowWidth() const;
 	void SetFullscreenMode(const bool fullscr) const;
@@ -186,7 +188,12 @@ private:
 
 	void SetErrorFlag(bool val);
 
+#ifdef BUILD_VULKAN
+	void PushShaderStage_Vk(RD_ShaderLoader* shader, std::vector<VkPipelineShaderStageCreateInfo>& cInfos);
+#endif // BUILD_VULKAN
+
 	std::unique_ptr<RD_RenderingAPI> m_api;
+	API m_api_type;
 
 	Pipeline m_pipeline;
 	std::string m_engineDir;
@@ -230,7 +237,7 @@ private:
 
 	std::unique_ptr<RD_GUI_Manager> m_gui_manager;
 
-	//Internals shaders (some are'nt use and compiled if Pipeline is not PBR)
+	//Internals shaders (some aren't used and compiled if Pipeline is not PBR)
 	RD_ShaderLoader* m_shadowShader;
 
 	RD_ShaderLoader* m_light_shader;

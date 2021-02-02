@@ -129,6 +129,7 @@ public:
 	~RD_RenderingAPI_Vk();
 
 	virtual bool InitializeAPI(const int w, const int h, const std::string wname);
+	void EndInit();
 	virtual RD_WindowingSystem* GetWindowingSystem();
 
 	virtual RD_RenderingAPI_VertexElemBuffer* CreateVertexElemBuffer();
@@ -137,7 +138,6 @@ public:
 	virtual RD_FrameBuffer* CreateFrameBuffer(int w, int h, bool nodepth);
 	virtual RD_ShaderLoader* CreateShader();
 	virtual RD_Cubemap* CreateCubemap();
-
 
 	virtual void SetViewportSize(int w, int h, int x, int y);
 
@@ -151,6 +151,8 @@ public:
 
 	VkShaderModule CreateShaderModule(const std::vector<char>& code_char);
 	void DestroyShaderModule(VkShaderModule shader);
+
+	void CreateGraphicPipeline(const std::vector<VkPipelineShaderStageCreateInfo>& shaderStages);
 
 private:
 	static VKAPI_ATTR VkBool32 VKAPI_CALL dbgCallback(
@@ -257,8 +259,11 @@ private:
 	void CreateLogicalDevice();
 	void CreateSwapChain();
 	void CreateImageViews();
-	void CreateGraphicPipeline();
 	void CreateMainRenderPass();
+	void CreatePipelineLayout();
+	void CreateFramebuffers();
+	void CreateCommandPool();
+	void CreateCommandBuffers();
 
 	std::vector<const char*> GetRequiredExtensions();
 
@@ -271,6 +276,11 @@ private:
 	VkInstance m_inst;
 	VkSwapchainKHR m_swapchain;
 	VkRenderPass m_mainsRenderPass;
+	VkPipelineLayout m_layout;
+	VkPipeline m_pipeline;
+
+	VkCommandPool m_command_pool;
+	std::vector<VkCommandBuffer> m_command_buffers;
 
 	VkDebugUtilsMessengerEXT m_dbg_msg;
 
@@ -285,6 +295,8 @@ private:
 
 	std::vector<VkImage> m_sc_images;
 	std::vector<VkImageView> m_sc_img_view;
+
+	std::vector<VkFramebuffer> m_sc_fbo;
 };
 
 #endif //BUILD_VULKAN

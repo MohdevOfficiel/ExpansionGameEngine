@@ -111,11 +111,15 @@ public:
 
 	virtual unsigned int GetProgID() { return 0; };
 
+	VkPipelineShaderStageCreateInfo* GetShaderStagesCreateInfo() { return m_pl_st_cInfo; }
+
 private:
 	RD_RenderingAPI_Vk* m_api;
 
 	VkShaderModule m_shader_vert;
 	VkShaderModule m_shader_frag;
+
+	VkPipelineShaderStageCreateInfo m_pl_st_cInfo[2];
 };
 
 #endif //BUILD_VULKAN

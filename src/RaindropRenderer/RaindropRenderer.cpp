@@ -30,6 +30,7 @@ RaindropRenderer::RaindropRenderer(int w, int h, std::string windowName, API api
 	if (api == API::OPENGL) {
 		std::cout << "Rendering using OpenGL." << std::endl;
 		m_api = std::make_unique<RD_RenderingAPI_GL>(this);
+		m_api_type = API::OPENGL;
 	}
 #endif //BUILD_OPENGL
 
@@ -37,6 +38,7 @@ RaindropRenderer::RaindropRenderer(int w, int h, std::string windowName, API api
 	if(api == API::VULKAN) {
 		std::cout << "Rendering using Vulkan." << std::endl;
 		m_api = std::make_unique<RD_RenderingAPI_Vk>(this);
+		m_api_type = API::VULKAN;
 	}
 #endif //BUILD_VULKAN
 	
@@ -1092,3 +1094,42 @@ void RaindropRenderer::SetVSync(const bool vsync) {
 bool RaindropRenderer::IsVSyncActivated() const {
 	return m_vsync;
 }
+
+void RaindropRenderer::CreateGraphicsPipeline_Vk() {
+	if (m_api_type != API::VULKAN)
+		return;
+
+#ifdef BUILD_VULKAN
+	RD_RenderingAPI_Vk* vk_api = reinterpret_cast<RD_RenderingAPI_Vk*>(m_api.get());
+
+	std::vector<VkPipelineShaderStageCreateInfo> cInfos;
+
+	PushShaderStage_Vk(m_shadowShader, cInfos);
+
+	/*
+	auto mat = m_matlib->GetAllMaterials();
+	for (auto m : mat) {
+		RD_ShaderLoader* shader = m.second->GetShader();
+		RD_ShaderLoader_Vk* shader_vk = reinterpret_cast<RD_ShaderLoader_Vk*>(shader);
+
+		auto sstage_cInfos = shader_vk->GetShaderStagesCreateInfo();
+		cInfos.push_back(sstage_cInfos[0]);
+		cInfos.push_back(sstage_cInfos[1]);
+	}
+	*/
+	
+	vk_api->CreateGraphicPipeline(cInfos);
+
+	vk_api->EndInit();
+#endif // BUILD_VULKAN
+}
+
+#ifdef BUILD_VULKAN
+void RaindropRenderer::PushShaderStage_Vk(RD_ShaderLoader* shader, std::vector<VkPipelineShaderStageCreateInfo>& cInfos) {
+	RD_ShaderLoader_Vk* shader_vk = reinterpret_cast<RD_ShaderLoader_Vk*>(shader);
+
+	auto sstage_cInfos = shader_vk->GetShaderStagesCreateInfo();
+	cInfos.push_back(sstage_cInfos[0]);
+	cInfos.push_back(sstage_cInfos[1]);
+}
+#endif //BUILD_VULKAN
