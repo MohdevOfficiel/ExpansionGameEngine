@@ -179,7 +179,9 @@ void RD_FrameBuffer_Vk::UnbindFBO() {
 }
 
 void RD_FrameBuffer_Vk::BuildFBO() {
-
+	for (int i = 0; i < m_nbrAttachement; i++) {
+		m_attachments[i].tex = new RD_Texture_Vk();
+	}
 }
 
 void RD_FrameBuffer_Vk::ConfigureRenderbuffer(int storage, int attachement) {
@@ -187,7 +189,13 @@ void RD_FrameBuffer_Vk::ConfigureRenderbuffer(int storage, int attachement) {
 }
 
 void RD_FrameBuffer_Vk::AddAttachement(unsigned int format, unsigned int scaleMode, unsigned int wrapmode) {
-
+	m_attachments.push_back({
+		nullptr,
+		format,
+		scaleMode,
+		wrapmode
+	});
+	m_nbrAttachement++;
 }
 
 int RD_FrameBuffer_Vk::GetNumberOfAttachements() {
@@ -195,7 +203,7 @@ int RD_FrameBuffer_Vk::GetNumberOfAttachements() {
 }
 
 RD_Texture* RD_FrameBuffer_Vk::GetAttachementByIndex(int index) {
-	return nullptr;
+	return m_attachments[index].tex;
 }
 
 void RD_FrameBuffer_Vk::ChangeFramebufferSize(int nw, int nh) {

@@ -242,5 +242,4 @@ void RD_Texture_GL::GetGLformat(
 	}
 }
 
-
 #endif //BUILD_OPENGL

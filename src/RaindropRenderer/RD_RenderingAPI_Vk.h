@@ -153,6 +153,7 @@ public:
 	void DestroyShaderModule(VkShaderModule shader);
 
 	void CreateGraphicPipeline(const std::vector<VkPipelineShaderStageCreateInfo>& shaderStages);
+	void BeginRenderPass();
 
 private:
 	static VKAPI_ATTR VkBool32 VKAPI_CALL dbgCallback(
@@ -297,6 +298,8 @@ private:
 	std::vector<VkImageView> m_sc_img_view;
 
 	std::vector<VkFramebuffer> m_sc_fbo;
+
+	VkClearValue m_clr;
 };
 
 #endif //BUILD_VULKAN

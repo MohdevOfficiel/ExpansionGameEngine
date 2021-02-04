@@ -279,6 +279,29 @@ void RD_RenderingAPI_Vk::EndInit() {
 	CreateCommandPool();
 }
 
+void RD_RenderingAPI_Vk::BeginRenderPass() {
+	for (int i = 0; i < m_command_buffers.size(); i++) {
+		VkRenderPassBeginInfo rndrPassInfo{};
+		rndrPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		rndrPassInfo.renderPass = m_mainsRenderPass;
+		rndrPassInfo.framebuffer = m_sc_fbo[i];
+		rndrPassInfo.renderArea.offset = { 0, 0 };
+		rndrPassInfo.renderArea.extent = m_sc_extent;
+		rndrPassInfo.clearValueCount = 1;
+		rndrPassInfo.pClearValues = &m_clr;
+
+		vkCmdBeginRenderPass(m_command_buffers[i], &rndrPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		vkCmdBindPipeline(m_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+
+		vkCmdDraw(m_command_buffers[i], 3, 1, 0, 0);
+
+		if (vkEndCommandBuffer(m_command_buffers[i]) != VK_SUCCESS) {
+			std::cerr << "ERROR: Failed to record command buffer." << std::endl;
+			dispErrorMessageBox(StrToWStr("Failed to record command buffer."));
+		}
+	}
+}
+
 void RD_RenderingAPI_Vk::CreateCommandPool() {
 	QueueFamilyIndices qFam = FindQueueFamilies(m_pdevice);
 
@@ -844,7 +867,8 @@ void RD_RenderingAPI_Vk::SetViewportSize(int w, int h, int x, int y) {
 }
 
 void RD_RenderingAPI_Vk::Clear(int masks) {
-	
+	m_clr = VkClearValue{};
+	m_clr.color = { 0.0f, 0.0f, 0.0f, 1.0f };
 }
 
 void RD_RenderingAPI_Vk::SetClearColor(const vec3f& color) {
