@@ -12,8 +12,6 @@
 
 #include "EXP_Game.h"
 
-#include "glad/glad.h"
-
 #include <RaindropRenderer.h>
 #include <RD_Quad.h>
 #include <RD_GUI_Manager.h>

@@ -90,7 +90,17 @@ void RD_Texture_GL::CreateAndAttachToFramebuffer(int w, int h, unsigned int FBO,
 
 	GetGLformat(format, scaleMode, wrapmode, &formatGL, &typeGL, &scaleMde, &wrapmde);
 
-	const int format2 = format == IMGFORMAT_DEPTH ? GL_DEPTH_COMPONENT : GL_RGB;
+
+	int format2;
+	if (format == IMGFORMAT_DEPTH) {
+		format2 = GL_DEPTH_COMPONENT;
+	}
+	else if (format == IMGFORMAT_RGBA) {
+		format2 = GL_RGBA;
+	}
+	else {
+		format2 = GL_RGB;
+	}
 
 	glTexImage2D(GL_TEXTURE_2D, 0, formatGL, w, h, 0, format2, typeGL, NULL);
 
@@ -138,6 +148,20 @@ void RD_Texture_GL::CreateTextureFromPixels(void* pixels, int w, int h, unsigned
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
+}
+
+void RD_Texture_GL::CreateTextureFromGlyph(void* data, const int w, const int h) {
+	glGenTextures(1, &m_texture);
+
+	glBindTexture(GL_TEXTURE_2D, m_texture);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 }
 
 void RD_Texture_GL::GetGLformat(

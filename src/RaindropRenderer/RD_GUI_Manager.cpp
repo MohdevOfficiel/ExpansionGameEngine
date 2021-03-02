@@ -5,7 +5,7 @@ RD_GUI_Manager::RD_GUI_Manager(RaindropRenderer* rndr) {
 	m_rndr = rndr;
 
 	m_framebuffer = rndr->GetRenderingAPI()->CreateFrameBuffer(rndr->getWindowWidth(), rndr->getWindowHeigh(), true);
-	m_framebuffer->ConfigureRenderbuffer(DEPTH_STENCIL_COMPONENT, DEPTH24_STENCIL8_ATTACHEMENT);
+	//m_framebuffer->ConfigureRenderbuffer(DEPTH_STENCIL_COMPONENT, DEPTH24_STENCIL8_ATTACHEMENT);
 
 	m_matLib = std::make_unique<RD_MaterialLibrary>();
 
@@ -16,8 +16,8 @@ RD_GUI_Manager::~RD_GUI_Manager() {
 	DeleteFrambuffer();
 	std::cout << "GUI Framebuffer deleted." << std::endl;
 
-	for (auto* elem : m_gui_elements) {
-		delete elem;
+	for (auto elem : m_gui_elements) {
+		//delete elem;
 	}
 	m_gui_elements.clear();
 	std::cout << "GUI Elements array were cleared and deleted." << std::endl;
@@ -51,7 +51,7 @@ void RD_GUI_Manager::RebuildFramebuffer() {
 
 void RD_GUI_Manager::RenderScreen() {
 	m_framebuffer->BindFBO();
-	m_rndr->GetRenderingAPI()->Clear(COLOR_BUFFER);
+	m_rndr->GetRenderingAPI()->Clear(COLOR_BUFFER | DEPTH_BUFFER);
 	
 	for (auto elem : m_gui_elements) {
 		elem->RenderElement();

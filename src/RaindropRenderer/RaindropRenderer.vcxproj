@@ -173,6 +173,7 @@
     <ClInclude Include="RD_Error.h" />
     <ClInclude Include="RD_FrameBuffer.h" />
     <ClInclude Include="RD_FrameLimiter.h" />
+    <ClInclude Include="RD_GenericRessourceManager.h" />
     <ClInclude Include="RD_GUI_Element.h" />
     <ClInclude Include="RD_GUI_Manager.h" />
     <ClInclude Include="RD_InstanciatedMesh.h" />
@@ -187,6 +188,7 @@
     <ClInclude Include="RD_RenderingAPI_GL.h" />
     <ClInclude Include="RD_ShaderLoader.h" />
     <ClInclude Include="RD_Structs.h" />
+    <ClInclude Include="RD_TextRenderer.h" />
     <ClInclude Include="RD_Texture.h" />
     <ClInclude Include="RD_RenderingAPI_Vk.h" />
   </ItemGroup>
@@ -219,6 +221,7 @@
     <ClCompile Include="RD_Quad.cpp" />
     <ClCompile Include="RD_RenderingAPI_GL.cpp" />
     <ClCompile Include="RD_ShaderLoader.cpp" />
+    <ClCompile Include="RD_TextRenderer.cpp" />
     <ClCompile Include="RD_Texture.cpp" />
     <ClCompile Include="RD_RenderingAPI_Vk.cpp" />
   </ItemGroup>
