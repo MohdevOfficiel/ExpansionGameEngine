@@ -1,49 +1,62 @@
 #version 450 core
 layout (location = 0) out vec4 LightPass;
 
-layout (location = 3) in vec2 UVcoords;
+in vec2 UVcoords;
 
 //uniform sampler2D GUIscreen;
 
 //Passes
-layout (binding = 0) uniform sampler2D ShadowPass;
+uniform sampler2D ShadowPass;
 
-layout (binding = 1) uniform sampler2D gPos;
-layout (binding = 2) uniform sampler2D gNormal;
+uniform sampler2D gPos;
+uniform sampler2D gNormal;
 
-layout (binding = 3) uniform sampler2D gAlbedo;
-layout (binding = 4) uniform sampler2D gSpec;
-layout (binding = 5) uniform sampler2D gMetRoughAO;
-layout (binding = 6) uniform sampler2D gEmissive;
-layout (binding = 7) uniform sampler2D ssao;
+uniform sampler2D gAlbedo;
+uniform sampler2D gSpec;
+uniform sampler2D gMetRoughAO;
+uniform sampler2D gEmissive;
+uniform sampler2D ssao;
+
+//Ambient
+layout(std140, binding = 2) uniform AMBIENT {
+	vec3 AmbientColor;
+	float AmbientStrength;
+};
 
 //Point Light
 const int MAX_POINT_LIGHTS = 243;
-layout (binding = 8) uniform PointLightData {
-	vec3 LightPos[MAX_POINT_LIGHTS];
-	float LightBrightness[MAX_POINT_LIGHTS];
-	vec3 LightColor[MAX_POINT_LIGHTS];
-	float LightRadius[MAX_POINT_LIGHTS];
+
+struct PointLight {
+	vec3 LightPos;
+	vec3 LightColor;
+	float LightBrightness;
+	float LightRadius;
+};
+
+layout(std140, binding = 3) uniform PointLightData {
 	int nbrPointLight;
+	PointLight plights[MAX_POINT_LIGHTS];
 };
 
 //Dir Light
-layout (binding = 9) uniform DirLightData {
-	int nbrDirLight;
-	vec3 DirLightDir[10];
-	vec3 DirLightColor[10];
-	float DirLightBrightness[10];
+struct DirLight {
+	vec3 Dir;
+	vec3 Color;
+	float brightness;
 };
 
-layout (binding = 10) uniform CameraData {
+layout(std140, binding = 4) uniform DirLightData {
+	int nbrDirLight;
+	DirLight dlights[10];
+};
+
+layout(std140, binding = 5) uniform CamData {
 	vec3 CamPos;
 };
 
-//Ambient
-layout (binding = 11) uniform Ambient {
-	float AmbientStrength;
-	vec3 AmbientColor;
-};
+uniform bool ftr_lighting = true;
+uniform bool ftr_specular = true;
+uniform bool ftr_ambient = true;
 
 float PI = 3.14159265359;
 
@@ -59,7 +72,7 @@ float Rness = metrao.g;
 float Metllc = metrao.r;
 float AO = metrao.b;
 
-vec3 viewDir = normalize(CamPos - FragPos);
+vec3 viewDir = normalize((CamPos - FragPos));
 
 vec3 F0 = mix(vec3(0.04), Diffuse, Metllc);
 
@@ -102,9 +115,9 @@ float GeomSmith(vec3 N, vec3 V, vec3 L, float roughness) {
 vec3 CalcDirLight(int index) {
 	float dist = 100000.0;
 
-	vec3 ColPow = DirLightColor[index] * DirLightBrightness[index];
+	vec3 ColPow = dlights[index].Color * dlights[index].brightness;
 
-	vec3 L = normalize(vec3(-DirLightDir[index]));
+	vec3 L = normalize(vec3(-dlights[index].Dir));
 	vec3 H = normalize(viewDir + L);
 
 	vec3 radiance = ColPow;
@@ -127,12 +140,12 @@ vec3 CalcDirLight(int index) {
 }
 
 vec3 CalcPointLight(int lightIndex) {
-	float dist = length(LightPos[lightIndex] - FragPos);
+	float dist = length(plights[lightIndex].LightPos - FragPos);
 
-	if(dist < LightRadius[lightIndex]) {
-		vec3 ColPow = LightColor[lightIndex] * LightBrightness[lightIndex];
+	if(dist < plights[lightIndex].LightRadius) {
+		vec3 ColPow = plights[lightIndex].LightColor * plights[lightIndex].LightBrightness;
 
-		vec3 L = normalize(LightPos[lightIndex] - FragPos);
+		vec3 L = normalize(plights[lightIndex].LightPos - FragPos);
 		vec3 H = normalize(viewDir + L);
 
 		float attenuation = 1.0 / ((dist * dist));

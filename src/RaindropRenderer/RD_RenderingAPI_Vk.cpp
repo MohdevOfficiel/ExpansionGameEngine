@@ -231,7 +231,6 @@ RD_RenderingAPI_Vk::~RD_RenderingAPI_Vk() {
 		vkDestroyFramebuffer(m_device, fb, nullptr);
 	}
 
-	vkDestroyPipeline(m_device, m_pipeline, nullptr);
 	vkDestroyPipelineLayout(m_device, m_layout, nullptr);
 
 	for (auto imgv : m_sc_img_view) {
@@ -291,7 +290,6 @@ void RD_RenderingAPI_Vk::BeginRenderPass() {
 		rndrPassInfo.pClearValues = &m_clr;
 
 		vkCmdBeginRenderPass(m_command_buffers[i], &rndrPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-		vkCmdBindPipeline(m_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
 		vkCmdDraw(m_command_buffers[i], 3, 1, 0, 0);
 
@@ -388,7 +386,7 @@ void RD_RenderingAPI_Vk::CreatePipelineLayout() {
 	}
 }
 
-void RD_RenderingAPI_Vk::CreateGraphicPipeline(const std::vector<VkPipelineShaderStageCreateInfo>& shaderStages) {
+VkPipeline RD_RenderingAPI_Vk::CreateGraphicPipeline(const std::vector<VkPipelineShaderStageCreateInfo>& shaderStages) {
 	m_winsys->CreateViewportAndScissors(m_sc_extent);
 
 	VkViewport vp = m_winsys->GetViewport();
@@ -455,12 +453,14 @@ void RD_RenderingAPI_Vk::CreateGraphicPipeline(const std::vector<VkPipelineShade
 	cInfo.basePipelineHandle = VK_NULL_HANDLE;
 	cInfo.basePipelineIndex = -1;
 
-	if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &cInfo, nullptr, &m_pipeline) != VK_SUCCESS) {
+	VkPipeline pline;
+
+	if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &cInfo, nullptr, &pline) != VK_SUCCESS) {
 		std::cerr << "ERROR: Cannot create graphic pipeline." << std::endl;
 		dispErrorMessageBox(StrToWStr("Cannot create graphic pipeline."));
 	}
 	else {
-		std::cout << "Created graphic pipeline !" << std::endl;
+		return pline;
 	}
 }
 
@@ -889,6 +889,10 @@ void RD_RenderingAPI_Vk::SetFilledMode(FillingMode fmode) {
 
 int RD_RenderingAPI_Vk::GetMaxTextureCount() {
 	return 0;
+}
+
+RD_UniformBuffer* RD_RenderingAPI_Vk::CreateUniformBuffer(const size_t size, const int binding) {
+	return new RD_UniformBuffer_Vk(size, binding);
 }
 
 VkShaderModule RD_RenderingAPI_Vk::CreateShaderModule(const std::vector<char>& code_char) {

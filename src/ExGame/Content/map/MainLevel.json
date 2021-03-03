@@ -9,6 +9,18 @@
       "color":[1, 1, 1],
       "brightness":10.0
     },
+    
+    {
+      "type":"mesh",
+      "nameTag":"skydome",
+
+      "ref":"/test_dome",
+      "material":"/shaders/mat_hdri",
+
+      "pos":[0.0, 0.0, 0.0],
+      "rot":[0.0, 0.0, 0.0],
+      "scale":[500, 500, 500]
+    },
 
     {
       "type":"mesh",

@@ -1,14 +1,14 @@
 #version 450 core
 layout (location = 0) out vec3 ShadowColor;
 
-layout (location = 3) in vec2 UVcoords;
+in vec2 UVcoords;
 
-layout (binding=0) uniform MatrixData { mat4 lspaceMat[10]; };
+uniform mat4 lspaceMat[10];
 
-layout (binding=1) uniform sampler2D ShadowMap[10];
-layout (binding=2) uniform LightData { int NbrDirLights; };
+uniform sampler2D ShadowMap[10];
+uniform int NbrDirLights;
 
-layout (binding=3) uniform sampler2D gPos;
+uniform sampler2D gPos;
 
 float lerp(float v0, float v1, float t) {
 	return (1 - t) * v0 + t * v1;

@@ -138,6 +138,7 @@ public:
 	virtual RD_FrameBuffer* CreateFrameBuffer(int w, int h, bool nodepth);
 	virtual RD_ShaderLoader* CreateShader();
 	virtual RD_Cubemap* CreateCubemap();
+	virtual RD_UniformBuffer* CreateUniformBuffer(const size_t size, const int binding);
 
 	virtual void SetViewportSize(int w, int h, int x, int y);
 
@@ -152,7 +153,7 @@ public:
 	VkShaderModule CreateShaderModule(const std::vector<char>& code_char);
 	void DestroyShaderModule(VkShaderModule shader);
 
-	void CreateGraphicPipeline(const std::vector<VkPipelineShaderStageCreateInfo>& shaderStages);
+	VkPipeline CreateGraphicPipeline(const std::vector<VkPipelineShaderStageCreateInfo>& shaderStages);
 	void BeginRenderPass();
 
 private:
@@ -278,7 +279,6 @@ private:
 	VkSwapchainKHR m_swapchain;
 	VkRenderPass m_mainsRenderPass;
 	VkPipelineLayout m_layout;
-	VkPipeline m_pipeline;
 
 	VkCommandPool m_command_pool;
 	std::vector<VkCommandBuffer> m_command_buffers;

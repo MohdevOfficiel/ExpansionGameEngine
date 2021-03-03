@@ -148,6 +148,12 @@ public:
 		unsigned int scaleMode = SCALEMODE_LINEAR,
 		unsigned int wrapmode = WRAPMODE_REPEAT) {};
 
+	virtual void CreateTextureFromGlyph(
+		void* data,
+		const int w,
+		const int h
+	) {};
+
 	virtual void BindTexture(unsigned int tex_unit) {};
 
 	virtual unsigned int GetTextureID() { return 0; };

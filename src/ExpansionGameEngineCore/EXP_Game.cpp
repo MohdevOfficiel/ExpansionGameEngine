@@ -141,8 +141,6 @@ void EXP_Game::InitGame(const vec3f& refreshColor, const EXP_GameInfo& gameinfo)
 	m_PlayingMap = std::make_unique<EXP_MapLoader>(this);
 	m_PlayingMap->LoadMap(gameinfo.RootGameContentFolder + gameinfo.StartupMap);
 
-	m_rndr->CreateGraphicsPipeline_Vk();
-
 	m_sigClearMatMan = false;
 	m_sigLevelFinalCleanup = false;
 

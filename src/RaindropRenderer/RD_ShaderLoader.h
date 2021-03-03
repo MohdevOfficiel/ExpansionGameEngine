@@ -138,15 +138,26 @@ public:
 
 	virtual unsigned int GetProgID() { return 0; };
 
-	VkPipelineShaderStageCreateInfo* GetShaderStagesCreateInfo() { return m_pl_st_cInfo; }
-
 private:
 	RD_RenderingAPI_Vk* m_api;
 
 	VkShaderModule m_shader_vert;
 	VkShaderModule m_shader_frag;
 
-	VkPipelineShaderStageCreateInfo m_pl_st_cInfo[2];
+	VkPipeline m_pipeline;
+
+	std::vector<VkPipelineShaderStageCreateInfo> m_pl_st_cInfo;
+};
+
+class RAINDROPRENDERER_API RD_UniformBuffer_Vk : public RD_UniformBuffer {
+public:
+	RD_UniformBuffer_Vk(const size_t bufferSize, const int binding) {};
+	virtual ~RD_UniformBuffer_Vk() {};
+
+	virtual void SetBufferSubData(const int offset, const size_t size, void* data) {};
+
+	virtual void BindBuffer() {};
+	virtual void UnbindBuffer() {};
 };
 
 #endif //BUILD_VULKAN

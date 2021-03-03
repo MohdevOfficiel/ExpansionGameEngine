@@ -1,11 +1,8 @@
 #version 450 core
+uniform vec3 debugColor = vec3(1.0, 1.0, 1.0);
 
-layout (binding = 1) uniform Color {
-	vec3 debugColor;
-} color;
-
-layout (location = 0) out vec3 FragColor;
+out vec3 FragPos;
 
 void main() {
-	FragColor = vec3(1.0, 1.0, 1.0);
+	FragPos = debugColor;
 }

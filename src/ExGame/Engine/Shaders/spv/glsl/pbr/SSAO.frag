@@ -1,21 +1,22 @@
 #version 450 core
 layout (location = 0) out float ssao;
 
-layout (location = 3) in vec2 UVcoords;
+in vec2 UVcoords;
 
-layout (binding = 0) uniform sampler2D gPos;
-layout (binding = 1) uniform sampler2D gNorm;
-layout (binding = 2) uniform sampler2D noise;
+uniform sampler2D gPos;
+uniform sampler2D gNorm;
+uniform sampler2D noise;
 
-layout (binding = 3) uniform Samples { vec3 samples[64]; };
-layout (binding = 4) uniform CameraData {
+layout(std140, binding = 0) uniform CAMERA {
     mat4 projection;
     mat4 view;
 };
 
-layout (binding = 5) uniform ScreenMetrics {
+layout(std140, binding = 6) uniform SSAO_Data {
     int scr_w;
     int scr_h;
+
+    vec3 samples[64];
 };
 
 float radius = 0.5;
@@ -23,8 +24,11 @@ float bias = 0.05;
 
 vec2 noiseScale = vec2(scr_w / 4.0, scr_h / 4.0);
 
+mat4 tview = transpose(view);
+mat4 tproj = transpose(projection);
+
 void main() {
-    vec3 FragPos = vec4(view * texture(gPos, UVcoords)).xyz;
+    vec3 FragPos = vec4(tview * texture(gPos, UVcoords)).xyz;
     vec3 norm = texture(gNorm, UVcoords).xyz;
     vec3 randomVec = normalize(texture(noise, UVcoords * noiseScale).xyz);
 
@@ -38,11 +42,11 @@ void main() {
         samplePos = samplePos * radius + FragPos;
 
         vec4 offset = vec4(samplePos, 1.0);
-        offset = projection * offset;
+        offset = tproj * offset;
         offset.xy /= offset.w;
         offset.xy = offset.xy * 0.5 + 0.5;
 
-        float sampleDepth = vec4(view * texture(gPos, offset.xy)).z;
+        float sampleDepth = vec4(tview * texture(gPos, offset.xy)).z;
 
         float rangeCheck = smoothstep(0.0, 1.0, radius / abs(FragPos.z - sampleDepth));
         occlusion += (sampleDepth >= samplePos.z + bias ? 1.0 : 0.0) * rangeCheck;

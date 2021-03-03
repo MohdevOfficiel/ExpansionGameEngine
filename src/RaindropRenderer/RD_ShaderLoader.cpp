@@ -194,6 +194,38 @@ unsigned int RD_ShaderLoader_GL::GetProgID() {
 	return m_program_id;
 }
 
+RD_UniformBuffer_GL::RD_UniformBuffer_GL(const size_t bufferSize, const int binding) {
+	m_binding = binding;
+	m_UBO = NULL;
+
+	CreateUBO(bufferSize);
+}
+
+void RD_UniformBuffer_GL::CreateUBO(const size_t bufferSize) {
+	glGenBuffers(1, &m_UBO);
+	glBindBuffer(GL_UNIFORM_BUFFER, m_UBO);
+	glBufferData(GL_UNIFORM_BUFFER, bufferSize, NULL, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	glBindBufferRange(GL_UNIFORM_BUFFER, m_binding, m_UBO, 0, bufferSize);
+}
+
+RD_UniformBuffer_GL::~RD_UniformBuffer_GL() {
+	glDeleteBuffers(1, &m_UBO);
+}
+
+void RD_UniformBuffer_GL::BindBuffer() {
+	glBindBuffer(GL_UNIFORM_BUFFER, m_UBO);
+}
+
+void RD_UniformBuffer_GL::UnbindBuffer() {
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void RD_UniformBuffer_GL::SetBufferSubData(const int offset, const size_t size, void* data) {
+	glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);
+}
+
 #endif //BUILD_OPENGL
 
 #ifdef BUILD_VULKAN
@@ -203,8 +235,8 @@ unsigned int RD_ShaderLoader_GL::GetProgID() {
 RD_ShaderLoader_Vk::RD_ShaderLoader_Vk(RD_RenderingAPI_Vk* api) {
 	m_api = api;
 
-	m_pl_st_cInfo[0] = VkPipelineShaderStageCreateInfo{};
-	m_pl_st_cInfo[1] = VkPipelineShaderStageCreateInfo{};
+	m_pl_st_cInfo.push_back(VkPipelineShaderStageCreateInfo{});
+	m_pl_st_cInfo.push_back(VkPipelineShaderStageCreateInfo{});
 }
 
 RD_ShaderLoader_Vk::~RD_ShaderLoader_Vk() {
@@ -268,8 +300,10 @@ void RD_ShaderLoader_Vk::compileShaderFromFile(const std::string& vert, const st
 	fragStage_cInfo.module = m_shader_frag;
 	fragStage_cInfo.pName = "main";
 
-	m_pl_st_cInfo[0] = vertStage_cInfo;
-	m_pl_st_cInfo[1] = fragStage_cInfo;
+	m_pl_st_cInfo[0] = (vertStage_cInfo);
+	m_pl_st_cInfo[1] = (fragStage_cInfo);
+
+	m_pipeline = m_api->CreateGraphicPipeline(m_pl_st_cInfo);
 }
 
 void RD_ShaderLoader_Vk::CompileShaderFromCode(const std::string& vert, const std::string& frag) {
