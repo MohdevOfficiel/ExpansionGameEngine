@@ -1,4 +1,5 @@
 #version 450 core
+#extension GL_ARB_separate_shader_objects : enable
 layout (location = 0) in vec3 aPos;
 
 layout(std140, binding = 0) uniform CAMERA {
@@ -6,7 +7,9 @@ layout(std140, binding = 0) uniform CAMERA {
     mat4 view;
 };
 
-uniform mat4 model;
+layout(std140, binding = 8) uniform MODEL {
+    uniform mat4 model;
+};
 
 void main()
 {

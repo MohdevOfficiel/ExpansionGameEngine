@@ -9,7 +9,7 @@ layout (binding = 9) uniform sampler2D GUIscreen;
 layout (binding = 12) uniform sampler2D bloom;
 layout (binding = 11) uniform sampler2D SSR;
 
-out vec4 FragColor;
+layout (location = 0) out vec4 FragColor;
 
 void main() {
     vec4 gui = texture(GUIscreen, UVcoords);

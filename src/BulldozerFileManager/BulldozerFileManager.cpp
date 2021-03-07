@@ -6,6 +6,7 @@
 
 void dispErrorMessageBox(LPCWSTR Message) {
 	MessageBox(nullptr, Message, TEXT("ERROR !!!"), MB_ICONERROR | MB_OK);
+	std::wcerr << "ERROR: " << Message << std::endl;
 }
 
 #else
@@ -55,4 +56,21 @@ std::string getFileExtension(std::string fileName) {
 	std::cout << extension << std::endl;
 
 	return extension;
+}
+
+std::vector<char> GetFileBinData(std::string filePath) {
+	std::ifstream file;
+	file.open(filePath, std::ios::binary | std::ios::ate);
+	if (!file.is_open()) {
+		std::wstring file(filePath.begin(), filePath.end());
+		dispErrorMessageBox(std::wstring(L"Failed to open file " + file).c_str());
+		return {};
+	}
+
+	size_t fSize = file.tellg();
+	file.seekg(0);
+	std::vector<char> data(fSize);
+	file.read(data.data(), fSize);
+
+	return data;
 }

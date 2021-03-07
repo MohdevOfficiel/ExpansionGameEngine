@@ -1,11 +1,13 @@
 #version 450 core
+#extension GL_ARB_separate_shader_objects : enable
+
 layout (location = 0) out float ssao;
 
-in vec2 UVcoords;
+layout (location = 3) in vec2 UVcoords;
 
-uniform sampler2D gPos;
-uniform sampler2D gNorm;
-uniform sampler2D noise;
+layout (binding = 0) uniform sampler2D gPos;
+layout (binding = 1) uniform sampler2D gNorm;
+layout (binding = 2) uniform sampler2D noise;
 
 layout(std140, binding = 0) uniform CAMERA {
     mat4 projection;

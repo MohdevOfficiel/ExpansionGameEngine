@@ -1,21 +1,23 @@
 #version 450 core
+#extension GL_ARB_separate_shader_objects : enable
+
 layout (location = 0) out vec4 LightPass;
 
-in vec2 UVcoords;
+layout (location = 3) in vec2 UVcoords;
 
 //uniform sampler2D GUIscreen;
 
 //Passes
-uniform sampler2D ShadowPass;
+layout (binding = 0) uniform sampler2D ShadowPass;
 
-uniform sampler2D gPos;
-uniform sampler2D gNormal;
+layout (binding = 1) uniform sampler2D gPos;
+layout (binding = 2) uniform sampler2D gNormal;
 
-uniform sampler2D gAlbedo;
-uniform sampler2D gSpec;
-uniform sampler2D gMetRoughAO;
-uniform sampler2D gEmissive;
-uniform sampler2D ssao;
+layout (binding = 3) uniform sampler2D gAlbedo;
+layout (binding = 4) uniform sampler2D gSpec;
+layout (binding = 5) uniform sampler2D gMetRoughAO;
+layout (binding = 6) uniform sampler2D gEmissive;
+layout (binding = 7) uniform sampler2D ssao;
 
 //Ambient
 layout(std140, binding = 2) uniform AMBIENT {
@@ -54,9 +56,9 @@ layout(std140, binding = 5) uniform CamData {
 	vec3 CamPos;
 };
 
-uniform bool ftr_lighting = true;
-uniform bool ftr_specular = true;
-uniform bool ftr_ambient = true;
+bool ftr_lighting = true;
+bool ftr_specular = true;
+bool ftr_ambient = true;
 
 float PI = 3.14159265359;
 

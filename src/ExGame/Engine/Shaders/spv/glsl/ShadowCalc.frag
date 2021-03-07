@@ -1,18 +1,18 @@
 #version 450 core
+#extension GL_ARB_separate_shader_objects : enable
+
 layout (location = 0) out vec3 ShadowColor;
 
-in vec2 UVcoords;
+layout (location = 3) in vec2 UVcoords;
 
-uniform mat4 lspaceMat[10];
+layout(push_constant) uniform DATA {
+	uniform mat4 lspaceMat[10];
+	uniform int NbrDirLights;
+};
 
-uniform sampler2D ShadowMap[10];
-uniform int NbrDirLights;
+layout (binding = 0) uniform sampler2D ShadowMap[10];
 
-uniform sampler2D gPos;
-
-float lerp(float v0, float v1, float t) {
-	return (1 - t) * v0 + t * v1;
-}
+layout (binding = 1) uniform sampler2D gPos;
 
 void main() {
 	float finalShadow = 0.0;

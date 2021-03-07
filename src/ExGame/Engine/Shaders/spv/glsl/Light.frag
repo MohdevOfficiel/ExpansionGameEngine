@@ -1,16 +1,18 @@
 #version 450 core
+#extension GL_ARB_separate_shader_objects : enable
+
 layout (location = 0) out vec4 LightPass;
 
-in vec2 UVcoords;
+layout (location = 3) in vec2 UVcoords;
 
 //uniform sampler2D GUIscreen;
 
 //Passes
-uniform sampler2D ShadowPass;
-uniform sampler2D gPos;
-uniform sampler2D gNormal;
-uniform sampler2D gAlbedo;
-uniform sampler2D gSpec;
+layout (binding = 0) uniform sampler2D ShadowPass;
+layout (binding = 1) uniform sampler2D gPos;
+layout (binding = 2) uniform sampler2D gNormal;
+layout (binding = 3) uniform sampler2D gAlbedo;
+layout (binding = 4) uniform sampler2D gSpec;
 
 //Ambient
 layout(std140, binding = 2) uniform AMBIENT{
@@ -49,9 +51,9 @@ layout(std140, binding = 5) uniform CameraPos {
 	vec3 CamPos;
 };
 
-uniform bool ftr_lighting;
-uniform bool ftr_specular;
-uniform bool ftr_ambient;
+//uniform bool ftr_lighting;
+//uniform bool ftr_specular;
+//uniform bool ftr_ambient;
 
 vec3 norm = normalize(texture(gNormal, UVcoords).rgb);
 vec3 FragPos = texture(gPos, UVcoords).rgb;
@@ -71,7 +73,7 @@ vec3 CalcDirLight(int index) {
 
 	//Specular
 	vec3 d_specular = vec3(0.0);
-	if(ftr_specular) {
+	if(true) {
 		vec3 reflectDir = reflect(-dir, norm);
 
 		float spec = pow(max(0.0, dot(viewDir, reflectDir)), SpecularExp);
@@ -94,7 +96,7 @@ vec3 CalcPointLight(int lightIndex) {
 		//Specular
 		vec3 specular = vec3(0.0, 0.0, 0.0);
 
-		if(ftr_specular) {
+		if(true) {
 			vec3 reflectDir = reflect(-LightDir, norm);
 
 			vec3 hwDir = normalize(LightDir + viewDir);
@@ -110,7 +112,7 @@ vec3 CalcPointLight(int lightIndex) {
 }
 
 void main() {
-	if(!ftr_lighting) {
+	if(true) {
 		LightPass = texture(gAlbedo, UVcoords);
 		return;
 	}

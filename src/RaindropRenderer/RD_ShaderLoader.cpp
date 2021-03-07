@@ -255,35 +255,8 @@ void RD_ShaderLoader_Vk::compileShaderFromFile(const std::string& vert, const st
 		return;
 	}
 
-	std::ifstream vFile;
-	vFile.open(vert, std::ios::ate | std::ios::binary);
-	if (!vFile.is_open()) {
-		std::cerr << "ERROR: Cannot open file " << vert << std::endl;
-		dispErrorMessageBox(StrToWStr("Cannot open file" + vert));
-		return;
-	}
-
-	size_t vfSize = vFile.tellg();
-	std::vector<char> vertContent(vfSize);
-
-	vFile.seekg(0);
-	vFile.read(vertContent.data(), vfSize);
-	vFile.close();
-
-	std::ifstream fFile;
-	fFile.open(frag, std::ios::ate | std::ios::binary);
-	if (!fFile.is_open()) {
-		std::cerr << "ERROR: Cannot open file " << frag << std::endl;
-		dispErrorMessageBox(StrToWStr("Cannot open file" + frag));
-		return;
-	}
-
-	size_t ffSize = fFile.tellg();
-	std::vector<char> fragContent(ffSize);
-
-	fFile.seekg(0);
-	fFile.read(fragContent.data(), ffSize);
-	fFile.close();
+	std::vector<char> vertContent = GetFileBinData(vert);
+	std::vector<char> fragContent = GetFileBinData(frag);
 
 	m_shader_vert = m_api->CreateShaderModule(vertContent);
 	m_shader_frag = m_api->CreateShaderModule(fragContent);

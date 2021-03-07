@@ -373,12 +373,17 @@ void RD_RenderingAPI_Vk::CreateFramebuffers() {
 }
 
 void RD_RenderingAPI_Vk::CreatePipelineLayout() {
+	VkPushConstantRange *const_range = new VkPushConstantRange;
+	const_range->offset = 4;
+	const_range->size = 4;
+	const_range->stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
 	VkPipelineLayoutCreateInfo cInfo{};
 	cInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	cInfo.setLayoutCount = 0;
 	cInfo.pSetLayouts = nullptr;
-	cInfo.pushConstantRangeCount = 0;
-	cInfo.pPushConstantRanges = 0;
+	cInfo.pushConstantRangeCount = 1;
+	cInfo.pPushConstantRanges = const_range;
 
 	if (vkCreatePipelineLayout(m_device, &cInfo, nullptr, &m_layout) != VK_SUCCESS) {
 		std::cerr << "ERROR: Cannot create pipeline layout." << std::endl;

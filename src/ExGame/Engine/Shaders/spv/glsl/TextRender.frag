@@ -5,12 +5,12 @@ layout (location = 2) out vec4 gAlbedo;
 layout (location = 3) out float gSpec;
 layout (location = 4) out vec3 gMetRoughAO;
 
-in vec3 Normal;
-in vec3 FragPos;
-in vec2 UVcoords;
+layout (location = 4) in vec3 Normal;
+layout (location = 5) in vec3 FragPos;
+layout (location = 3) in vec2 UVcoords;
 
-uniform sampler2D glyph;
-uniform vec3 txtColor;
+layout (binding = 0) uniform sampler2D glyph;
+layout (binding = 1) uniform vec3 txtColor;
 
 void main() {
 	float sampled = texture(glyph, UVcoords + vec2(0.0, 1.0)).r;
